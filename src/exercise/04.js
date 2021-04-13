@@ -1,124 +1,108 @@
-// useState: tic tac toe
-// http://localhost:3000/isolated/exercise/04.js
-
 import * as React from 'react'
+import { PokemonForm, fetchPokemon, PokemonInfoFallback, PokemonDataView } from '../pokemon'
 
-function Board() {
-  // 🐨 squares is the state for this component. Add useState for squares
-  const squares = Array(9).fill(null)
+function PokemonInfo({ pokemonName }) {
+  // 🐨 Have state for the pokemon (null)
+  const [pokemon, setPokemon] = React.useState(null)
+  const [error, setError] = React.useState(null)
+  const [status, setStatus] = React.useState('idle') // Ocioso
 
-  // 🐨 We'll need the following bits of derived state:
-  // - nextValue ('X' or 'O')
-  // - winner ('X', 'O', or null)
-  // - status (`Winner: ${winner}`, `Scratch: Cat's game`, or `Next player: ${nextValue}`)
-  // 💰 I've written the calculations for you! So you can use my utilities
-  // below to create these variables
+  React.useEffect(() => {
 
-  // This is the function your square click handler will call. `square` should
-  // be an index. So if they click the center square, this will be `4`.
-  function selectSquare(square) {
-    // 🐨 first, if there's already winner or there's already a value at the
-    // given square index (like someone clicked a square that's already been
-    // clicked), then return early so we don't make any state changes
-    //
-    // 🦉 It's typically a bad idea to mutate or directly change state in React.
-    // Doing so can lead to subtle bugs that can easily slip into production.
-    //
-    // 🐨 make a copy of the squares array
-    // 💰 `[...squares]` will do it!)
-    //
-    // 🐨 set the value of the square that was selected
-    // 💰 `squaresCopy[square] = nextValue`
-    //
-    // 🐨 set the squares to your copy
-  }
+    if (!pokemonName) return   // Nome vazio, retorna sem fazer nada
 
-  function restart() {
-    // 🐨 reset the squares
-    // 💰 `Array(9).fill(null)` will do it!
-  }
+    // Resetar o estado do pokemon
+    setPokemon(null)
+    setError(null)
 
-  function renderSquare(i) {
-    return (
-      <button className="square" onClick={() => selectSquare(i)}>
-        {squares[i]}
-      </button>
-    )
-  }
+    /*
+    // Essa abordagem não funciona porque o JS trabalha de forma ASSÍNCRONA
+    const pokemonData = fetchPokemon(pokemonName)   // Chamada da API
+    setPokemon(pokemonData)     // Atualizar o estado com os dados retornados da API
+    */
+    // Callback é um função que será executada pela função assíncrona assim que ela
+    // tiver terminado de fazer sua tarefa
 
-  return (
-    <div>
-      {/* 🐨 put the status in the div below */}
-      <div className="status">STATUS</div>
-      <div className="board-row">
-        {renderSquare(0)}
-        {renderSquare(1)}
-        {renderSquare(2)}
-      </div>
-      <div className="board-row">
-        {renderSquare(3)}
-        {renderSquare(4)}
-        {renderSquare(5)}
-      </div>
-      <div className="board-row">
-        {renderSquare(6)}
-        {renderSquare(7)}
-        {renderSquare(8)}
-      </div>
-      <button className="restart" onClick={restart}>
-        restart
-      </button>
-    </div>
-  )
-}
+    // Tecnicamente, uma função assíncrona retorna um objeto do tipo Promise (promessa).
+    // Uma Promise suporta dois callbacks, um para quando a execução assíncrona dá certa
+    // e outro para o caso de erro.
+    /*
+    // MÉTODO 1: Promise com then..catch
+    fetchPokemon(pokemonName)
+        .then(     // Callback para quando dá certo ("do bem")
+            pokemonData => setPokemon(pokemonData)
+        )
+        .catch(    // Callback para quando dá errado ("do mal")
+            erro => alert(erro.message)
+        )
+    */
 
-function Game() {
-  return (
-    <div className="game">
-      <div className="game-board">
-        <Board />
-      </div>
-    </div>
-  )
-}
-
-// eslint-disable-next-line no-unused-vars
-function calculateStatus(winner, squares, nextValue) {
-  return winner
-    ? `Winner: ${winner}`
-    : squares.every(Boolean)
-    ? `Scratch: Cat's game`
-    : `Next player: ${nextValue}`
-}
-
-// eslint-disable-next-line no-unused-vars
-function calculateNextValue(squares) {
-  return squares.filter(Boolean).length % 2 === 0 ? 'X' : 'O'
-}
-
-// eslint-disable-next-line no-unused-vars
-function calculateWinner(squares) {
-  const lines = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6],
-  ]
-  for (let i = 0; i < lines.length; i++) {
-    const [a, b, c] = lines[i]
-    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a]
+    // MÉTODO 2: função com async...await
+    async function getPokemonFromServer() {     // Declaração da função assíncrona
+      try {   // TENTA fazer a chamada ao servidor remoto da API
+        setStatus('pending')
+        const pokemonData = await fetchPokemon(pokemonName)
+        setPokemon(pokemonData)
+        setStatus('resolved')
+      }
+      catch (erro) {   // Em caso de erro no bloco try, caímos no bloco catch()
+        setError(erro)
+        setStatus('rejected')
+      }
     }
+    // Chamada da função assíncrona
+    getPokemonFromServer()
+
+  }, [pokemonName])
+
+  // 🐨 use React.useEffect where the callback should be called whenever the
+  // pokemon name changes.
+  // 💰 DON'T FORGET THE DEPENDENCIES ARRAY!
+  // 💰 if the pokemonName is falsy (an empty string) then don't bother making the request (exit early).
+  // 🐨 before calling `fetchPokemon`, clear the current pokemon state by setting it to null
+  // 💰 Use the `fetchPokemon` function to fetch a pokemon by its name:
+  //   fetchPokemon('Pikachu').then(
+  //     pokemonData => { /* update all the state here */},
+  //   )
+  // 🐨 return the following things based on the `pokemon` state and `pokemonName` prop:
+  //   1. no pokemonName: 'Submit a pokemon'
+  //   2. pokemonName but no pokemon: <PokemonInfoFallback name={pokemonName} />
+  //   3. pokemon: <PokemonDataView pokemon={pokemon} />
+
+  switch (status) {
+    case 'idle':
+      return 'Submit a pokemon'
+    case 'rejected':
+      return (
+        <div role="alert">
+          There was an error: <pre style={{ whiteSpace: 'normal' }}>{error.message}</pre>
+        </div>
+      )
+    case 'pending':
+      return <PokemonInfoFallback name={pokemonName} />
+    //case 'resolved':
+    default:
+      return <PokemonDataView pokemon={pokemon} />
   }
-  return null
+
 }
 
 function App() {
-  return <Game />
+  const [pokemonName, setPokemonName] = React.useState('')
+
+  function handleSubmit(newPokemonName) {
+    setPokemonName(newPokemonName)
+  }
+
+  return (
+    <div className="pokemon-info-app">
+      <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
+      <hr />
+      <div className="pokemon-info">
+        <PokemonInfo pokemonName={pokemonName} />
+      </div>
+    </div>
+  )
 }
 
 export default App

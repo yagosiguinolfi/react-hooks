@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+  <html lang="pt-bt">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercício de Fixação 3</title>
+    <style>
+      label {
+        display: block;
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <div id="root"></div>
+
+    <script src="https://unpkg.com/react@17.0.0/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17.0.0/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone@7.12.4/babel.js"></script>
+
+    <script type="text/babel">
+
+      /* Converta a função abaixo em um componente. */
+      function InputSet({ id, labelText, onInputChange }) {
+        return (
+          <div>
+            <label htmlFor={id}>{labelText}</label>
+            <input id={id} type="number" onChange={onInputChange} />
+          </div>
+        )
+      }
+
+      /* Converta esta função em um componente */
+      function Result({ imc, classif }) {
+        return (
+          <> {/* Fragment */}
+            <div className="result">IMC: {imc}</div>
+            <div className="result">{classif}</div>
+          </>
+        )
+      }
+
+      function Form() {
+
+        /* Crie as seguintes variáveis de estado:
+           * peso
+           * altura
+           * classif
+           * imc
+        */
+        const [peso, setPeso] = React.useState();
+        const [altura, setAltura] = React.useState();
+        const [classif, setClassif] = React.useState();
+        const [imc, setImc] = React.useState();
+
+
+        function handleInputChange(event) {
+          if (event.target.id === 'peso') setPeso({ ...state, peso: event.target.value })
+          else if (event.target.id === 'altura') setAltura({ ...state, altura: event.target.value })
+        }
+
+
+        React.useEffect(() => {
+
+          let imcTemp, classifTemp
+
+          if (isNaN(peso) || isNaN(altura)) imcTemp = '---'
+          else imcTemp = peso / altura ** 2
+
+          console.log('UseEffect', { imc })
+          if (imcTemp < 18.5)
+            classifTemp = 'Abaixo do peso'
+          else if (imcTemp > 18.5 && imcTemp < 25)
+            classifTemp = 'Peso normal'
+          else if (imcTemp >= 25 && imcTemp < 30)
+            classifTemp = 'Sobrepeso'
+          else if (imcTemp >= 30 && imcTemp < 35)
+            classifTemp = 'Obesidade grau I'
+          else if (imcTemp >= 35 && imcTemp < 40)
+            classifTemp = 'Obesidade grau II'
+          else if (imcTemp >= 40)
+            classifTemp = 'Obesidade grau III ou mórbita'
+          else classifTemp = ''
+
+          setImc(imcTemp)
+          setClassif(classifTemp)
+
+          setState({ ...state, imc: imcTemp, classif: classifTemp })
+        }, [peso, altura])
+
+        return (
+          <>
+            <h1>Cálculo do IMC</h1>
+            <form>
+              { /* Substitua as chamadas de função abaixo pelos componentes correspondentes */}
+              { /* inputSet('peso', 'Peso (kg):', handleInputChange) */}
+              <InputSet id="peso" labelText="Peso (kg):" onInputChange={handleInputChange} />
+              { /* inputSet('altura', 'Altura (m):', handleInputChange) */}
+              <InputSet id="altura" labelText="Altura (m):" onInputChange={handleInputChange} />
+              { /* result(estadoImc, estadoClassif) */}
+              <Result imc={imc} classif={classif} />
+            </form>
+          </>
+        )
+      }
+
+      ReactDOM.render(<Form />, document.getElementById('root'))
+
+    </script>
+
+  </body>
+
+  </html>
